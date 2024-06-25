@@ -44,3 +44,47 @@ def update_produit(db_produit: models.Produit,
     database.commit()
 
     return db_produit
+
+def get_lieux(database: Session):
+    """
+        Retourne la liste des lieux
+    """
+    all_lieux = database.query(models.Lieu)
+    return all_lieux
+
+def get_lieu(id_lieu: int, database: Session):
+    """
+        Retourne un lieu
+    """
+    lieu = database.query(models.Lieu) \
+        .where(models.Lieu.id_lieu == id_lieu).first()
+    return lieu
+
+def create_lieu(lieu: models.Lieu, database: Session):
+    """
+        Créer et retourne le lieu
+    """
+    database.add(lieu)
+    database.commit()
+    database.refresh(lieu)
+    return lieu
+
+def delete_lieu(lieu: models.Lieu, database: Session):
+    """
+        Supprime un lieu de la base de données
+    """
+    database.delete(lieu)
+    database.commit()
+
+def update_lieu(db_lieu: models.Lieu,
+    lieu: schemas.LieuUpdate, database: Session):
+    """
+        Met à jour les données du lieu
+    """
+    lieu_data = lieu.model_dump(exclude_unset=True)
+    for key, value in lieu_data.items():
+        setattr(db_lieu, key, value)
+
+    database.commit()
+
+    return db_lieu
