@@ -45,6 +45,7 @@ class Lieu(Base):
     produits_lieu: Mapped[List["ProduitLieu"]] \
         = relationship(back_populates="lieu", cascade="all, delete-orphan")
 
+# pylint: disable=too-few-public-methods
 class ProduitLieu(Base):
     """
         Classe Model de jointure entre les tables produit et lieu
