@@ -3,12 +3,14 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from app.connexion import get_db
 from app import actions, schemas, models
+from app.routers.auth import verify_authorization
 
 
 router = APIRouter()
 
 @router.get("", response_model=List[schemas.Lieu], tags=["lieu"])
-async def get_lieux(database: Session = Depends(get_db)):
+async def get_lieux(database: Session = Depends(get_db),
+                    _ = Depends(verify_authorization)):
     """
         Retourne toutes les lieux
     """
@@ -20,7 +22,8 @@ async def get_lieux(database: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Connection failed: {exc}") from exc
 
 @router.get("/{id_lieu}", response_model=schemas.Lieu, tags=["lieu"])
-async def get_lieu(id_lieu: int, database: Session = Depends(get_db)):
+async def get_lieu(id_lieu: int, database: Session = Depends(get_db),
+                   _ = Depends(verify_authorization)):
     """
         Retourne le lieu trouvé par son id
     """
@@ -37,7 +40,8 @@ async def get_lieu(id_lieu: int, database: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Connection failed: {exc}") from exc
 
 @router.post("", response_model=schemas.Lieu, status_code=201, tags=["lieu"])
-async def post_lieu(lieu: schemas.LieuCreate, database: Session = Depends(get_db)):
+async def post_lieu(lieu: schemas.LieuCreate, database: Session = Depends(get_db),
+                    _ = Depends(verify_authorization)):
     """
         Créer un nouveau lieu
     """
@@ -55,7 +59,8 @@ async def post_lieu(lieu: schemas.LieuCreate, database: Session = Depends(get_db
         raise HTTPException(status_code=500, detail=f"Connection failed: {exc}") from exc
 
 @router.delete("/{id_lieu}", tags=["lieu"])
-async def delete_lieu(id_lieu: int, database: Session = Depends(get_db)):
+async def delete_lieu(id_lieu: int, database: Session = Depends(get_db),
+                      _ = Depends(verify_authorization)):
     """
         Supprime un lieu
     """
@@ -74,7 +79,8 @@ async def delete_lieu(id_lieu: int, database: Session = Depends(get_db)):
 
 @router.patch("/{id_lieu}", response_model=schemas.Lieu, tags=["lieu"])
 async def patch_lieu(id_lieu: int,
-    lieu: schemas.LieuUpdate, database: Session = Depends(get_db)):
+    lieu: schemas.LieuUpdate, database: Session = Depends(get_db),
+    _ = Depends(verify_authorization)):
     """
         Met à jour les données du lieu
     """
