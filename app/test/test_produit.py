@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 from app.test.utils import memory_engine
 from app import models, actions
 from app.main import app
+from app.test.setup import setup_mock_auth
 
 client = TestClient(app)
 
@@ -18,7 +19,10 @@ def test_get_produits(mocker):
     }]
     mocker.patch("sqlalchemy.orm.Session.query", return_value=produits)
 
-    response = client.get("/produit")
+    setup_mock_auth(mocker)
+
+    headers = {"token": "None"}
+    response = client.get("/produit",headers=headers)
 
     assert response.status_code == 200
     assert response.json() == produits
@@ -29,7 +33,10 @@ def test_get_produits_error_500(mocker):
     """
     mocker.patch("sqlalchemy.orm.Session.query", side_effect=Exception("Connection error"))
 
-    response = client.get("/produit")
+    setup_mock_auth(mocker)
+
+    headers = {"token": "None"}
+    response = client.get("/produit",headers=headers)
 
     assert response.status_code == 500
 
@@ -48,7 +55,10 @@ def test_get_produit(mocker):
     mock_query.where.return_value.first.return_value = db_produit
     mocker.patch("sqlalchemy.orm.Session.query", return_value=mock_query)
 
-    response = client.get("/produit/" + str(db_produit['id_produit']))
+    setup_mock_auth(mocker)
+
+    headers = {"token": "None"}
+    response = client.get("/produit/" + str(db_produit['id_produit']),headers=headers)
 
     assert response.status_code == 200
     assert response.json() == db_produit
@@ -62,7 +72,10 @@ def test_get_produit_error_404(mocker):
     mock_query.where.return_value.first.return_value = db_produit
     mocker.patch("sqlalchemy.orm.Session.query", return_value=mock_query)
 
-    response = client.get("/produit/1")
+    setup_mock_auth(mocker)
+
+    headers = {"token": "None"}
+    response = client.get("/produit/1",headers=headers)
 
     assert response.status_code == 404
     assert response.json() == {'detail': 'Produit not found'}
@@ -73,7 +86,10 @@ def test_get_produit_error_500(mocker):
     """
     mocker.patch("sqlalchemy.orm.Session.query", side_effect=Exception("Connection error"))
 
-    response = client.get("/produit/1")
+    setup_mock_auth(mocker)
+
+    headers = {"token": "None"}
+    response = client.get("/produit/1",headers=headers)
 
     assert response.status_code == 500
 
@@ -97,7 +113,10 @@ def test_post_produit(mocker):
 
     mocker.patch("app.actions.create_produit", return_value=db_produit)
 
-    response = client.post("/produit", json=new_produit)
+    setup_mock_auth(mocker)
+
+    headers = {"token": "None"}
+    response = client.post("/produit", json=new_produit,headers=headers)
 
     assert response.status_code == 201
 
@@ -118,7 +137,7 @@ def test_action_create_produit():
     assert isinstance(db_produit, models.Produit)
     assert db_produit.id_produit is not None
 
-def test_post_produit_error_422():
+def test_post_produit_error_422(mocker):
     """
         Cas non passant (des informations du produit sont manquants)
     """
@@ -128,7 +147,10 @@ def test_post_produit_error_422():
         "provenance": "France",
     }
 
-    response = client.post("/produit", json=new_produit)
+    setup_mock_auth(mocker)
+
+    headers = {"token": "None"}
+    response = client.post("/produit", json=new_produit,headers=headers)
 
     assert response.status_code == 422
 
@@ -144,7 +166,10 @@ def test_post_produit_error_500(mocker):
     }
     mocker.patch("sqlalchemy.orm.Session.commit", side_effect=Exception("Connection error"))
 
-    response = client.post("/produit", json=new_produit)
+    setup_mock_auth(mocker)
+
+    headers = {"token": "None"}
+    response = client.post("/produit", json=new_produit,headers=headers)
 
     assert response.status_code == 500
 
@@ -163,7 +188,10 @@ def test_delete_produit(mocker):
     mocker.patch("sqlalchemy.orm.Session.delete", return_value=None)
     mocker.patch("sqlalchemy.orm.Session.commit", return_value=None)
 
-    response = client.delete("/produit/" + str(db_produit.id_produit))
+    setup_mock_auth(mocker)
+
+    headers = {"token": "None"}
+    response = client.delete("/produit/" + str(db_produit.id_produit),headers=headers)
 
     assert response.status_code == 200
     assert response.json() == {"deleted": db_produit.id_produit}
@@ -174,7 +202,10 @@ def test_delete_produit_error_404(mocker):
     """
     mocker.patch("app.actions.get_produit", return_value=None)
 
-    response = client.delete("/produit/1")
+    setup_mock_auth(mocker)
+
+    headers = {"token": "None"}
+    response = client.delete("/produit/1",headers=headers)
 
     assert response.status_code == 404
 
@@ -192,7 +223,10 @@ def test_delete_produit_error_500(mocker):
     mocker.patch("app.actions.get_produit", return_value=db_produit)
     mocker.patch("sqlalchemy.orm.Session.delete", side_effect=Exception("Connection error"))
 
-    response = client.delete("/produit/1")
+    setup_mock_auth(mocker)
+
+    headers = {"token": "None"}
+    response = client.delete("/produit/1",headers=headers)
 
     assert response.status_code == 500
 
@@ -213,7 +247,11 @@ def test_patch_produit(mocker):
     mocker.patch("app.actions.get_produit", return_value=db_produit)
     mocker.patch("sqlalchemy.orm.Session.commit", return_value=None)
 
-    response = client.patch("/produit/" + str(db_produit.id_produit), json=produit_updated)
+    setup_mock_auth(mocker)
+
+    headers = {"token": "None"}
+    response = client.patch("/produit/" + str(db_produit.id_produit),
+                            json=produit_updated,headers=headers)
 
     assert response.status_code == 200
     assert response.json()["description"] == produit_updated["description"]
@@ -227,7 +265,10 @@ def test_patch_produit_error_404(mocker):
     }
     mocker.patch("app.actions.get_produit", return_value=None)
 
-    response = client.patch("/produit/1", json=produit_updated)
+    setup_mock_auth(mocker)
+
+    headers = {"token": "None"}
+    response = client.patch("/produit/1", json=produit_updated,headers=headers)
 
     assert response.status_code == 404
 
@@ -248,6 +289,10 @@ def test_patch_produit_error_500(mocker):
     mocker.patch("app.actions.get_produit", return_value=db_produit)
     mocker.patch("sqlalchemy.orm.Session.commit", side_effect=Exception("Connection error"))
 
-    response = client.patch("/produit/" + str(db_produit.id_produit), json=produit_updated)
+    setup_mock_auth(mocker)
+
+    headers = {"token": "None"}
+    response = client.patch("/produit/" + str(db_produit.id_produit),
+                            json=produit_updated,headers=headers)
 
     assert response.status_code == 500

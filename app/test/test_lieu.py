@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 from app.test.utils import memory_engine
 from app import models, actions
 from app.main import app
+from app.test.setup import setup_mock_auth
 
 client = TestClient(app)
 
@@ -18,7 +19,10 @@ def test_get_lieux(mocker):
     }]
     mocker.patch("sqlalchemy.orm.Session.query", return_value=lieux)
 
-    response = client.get("/lieu")
+    setup_mock_auth(mocker)
+
+    headers = {"token": "None"}
+    response = client.get("/lieu",headers=headers)
 
     assert response.status_code == 200
     assert response.json() == lieux
@@ -29,7 +33,10 @@ def test_get_lieux_error_500(mocker):
     """
     mocker.patch("sqlalchemy.orm.Session.query", side_effect=Exception("Connection error"))
 
-    response = client.get("/lieu")
+    setup_mock_auth(mocker)
+
+    headers = {"token": "None"}
+    response = client.get("/lieu", headers=headers)
 
     assert response.status_code == 500
 
@@ -48,7 +55,10 @@ def test_get_lieu(mocker):
     mock_query.where.return_value.first.return_value = db_lieu
     mocker.patch("sqlalchemy.orm.Session.query", return_value=mock_query)
 
-    response = client.get("/lieu/" + str(db_lieu['id_lieu']))
+    setup_mock_auth(mocker)
+
+    headers = {"token": "None"}
+    response = client.get("/lieu/" + str(db_lieu['id_lieu']), headers=headers)
 
     assert response.status_code == 200
     assert response.json() == db_lieu
@@ -62,7 +72,10 @@ def test_get_lieu_error_404(mocker):
     mock_query.where.return_value.first.return_value = db_lieu
     mocker.patch("sqlalchemy.orm.Session.query", return_value=mock_query)
 
-    response = client.get("/lieu/1")
+    setup_mock_auth(mocker)
+
+    headers = {"token": "None"}
+    response = client.get("/lieu/1", headers=headers)
 
     assert response.status_code == 404
     assert response.json() == {'detail': 'Lieu not found'}
@@ -73,7 +86,10 @@ def test_get_lieu_error_500(mocker):
     """
     mocker.patch("sqlalchemy.orm.Session.query", side_effect=Exception("Connection error"))
 
-    response = client.get("/lieu/1")
+    setup_mock_auth(mocker)
+
+    headers = {"token": "None"}
+    response = client.get("/lieu/1", headers=headers)
 
     assert response.status_code == 500
 
@@ -97,7 +113,10 @@ def test_post_lieu(mocker):
 
     mocker.patch("app.actions.create_lieu", return_value=db_lieu)
 
-    response = client.post("/lieu", json=new_lieu)
+    setup_mock_auth(mocker)
+
+    headers = {"token": "None"}
+    response = client.post("/lieu", json=new_lieu, headers=headers)
 
     assert response.status_code == 201
 
@@ -118,7 +137,7 @@ def test_action_create_lieu():
     assert isinstance(db_lieu, models.Lieu)
     assert db_lieu.id_lieu is not None
 
-def test_post_lieu_error_422():
+def test_post_lieu_error_422(mocker):
     """
         Cas non passant (des informations du lieu sont manquants)
     """
@@ -128,7 +147,10 @@ def test_post_lieu_error_422():
         "ville": "France"
     }
 
-    response = client.post("/lieu", json=new_lieu)
+    setup_mock_auth(mocker)
+
+    headers = {"token": "None"}
+    response = client.post("/lieu", json=new_lieu, headers=headers)
 
     assert response.status_code == 422
 
@@ -144,7 +166,10 @@ def test_post_lieu_error_500(mocker):
     }
     mocker.patch("sqlalchemy.orm.Session.commit", side_effect=Exception("Connection error"))
 
-    response = client.post("/lieu", json=new_lieu)
+    setup_mock_auth(mocker)
+
+    headers = {"token": "None"}
+    response = client.post("/lieu", json=new_lieu, headers=headers)
 
     assert response.status_code == 500
 
@@ -163,7 +188,10 @@ def test_delete_lieu(mocker):
     mocker.patch("sqlalchemy.orm.Session.delete", return_value=None)
     mocker.patch("sqlalchemy.orm.Session.commit", return_value=None)
 
-    response = client.delete("/lieu/" + str(db_lieu.id_lieu))
+    setup_mock_auth(mocker)
+
+    headers = {"token": "None"}
+    response = client.delete("/lieu/" + str(db_lieu.id_lieu), headers=headers)
 
     assert response.status_code == 200
     assert response.json() == {"deleted": db_lieu.id_lieu}
@@ -174,7 +202,10 @@ def test_delete_lieu_error_404(mocker):
     """
     mocker.patch("app.actions.get_lieu", return_value=None)
 
-    response = client.delete("/lieu/1")
+    setup_mock_auth(mocker)
+
+    headers = {"token": "None"}
+    response = client.delete("/lieu/1", headers=headers)
 
     assert response.status_code == 404
 
@@ -192,7 +223,10 @@ def test_delete_lieu_error_500(mocker):
     mocker.patch("app.actions.get_lieu", return_value=db_lieu)
     mocker.patch("sqlalchemy.orm.Session.delete", side_effect=Exception("Connection error"))
 
-    response = client.delete("/lieu/1")
+    setup_mock_auth(mocker)
+
+    headers = {"token": "None"}
+    response = client.delete("/lieu/1", headers=headers)
 
     assert response.status_code == 500
 
@@ -213,7 +247,10 @@ def test_patch_lieu(mocker):
     mocker.patch("app.actions.get_lieu", return_value=db_lieu)
     mocker.patch("sqlalchemy.orm.Session.commit", return_value=None)
 
-    response = client.patch("/lieu/" + str(db_lieu.id_lieu), json=lieu_updated)
+    setup_mock_auth(mocker)
+
+    headers = {"token": "None"}
+    response = client.patch("/lieu/" + str(db_lieu.id_lieu), json=lieu_updated, headers=headers)
 
     assert response.status_code == 200
     assert response.json()["adresse"] == lieu_updated["adresse"]
@@ -227,7 +264,10 @@ def test_patch_lieu_error_404(mocker):
     }
     mocker.patch("app.actions.get_lieu", return_value=None)
 
-    response = client.patch("/lieu/1", json=lieu_updated)
+    setup_mock_auth(mocker)
+
+    headers = {"token": "None"}
+    response = client.patch("/lieu/1", json=lieu_updated, headers=headers)
 
     assert response.status_code == 404
 
@@ -248,6 +288,9 @@ def test_patch_lieu_error_500(mocker):
     mocker.patch("app.actions.get_lieu", return_value=db_lieu)
     mocker.patch("sqlalchemy.orm.Session.commit", side_effect=Exception("Connection error"))
 
-    response = client.patch("/lieu/" + str(db_lieu.id_lieu), json=lieu_updated)
+    setup_mock_auth(mocker)
+
+    headers = {"token": "None"}
+    response = client.patch("/lieu/" + str(db_lieu.id_lieu), json=lieu_updated, headers=headers)
 
     assert response.status_code == 500

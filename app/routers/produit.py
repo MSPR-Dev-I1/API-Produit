@@ -3,12 +3,14 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from app.connexion import get_db
 from app import actions, schemas, models
+from app.routers.auth import verify_authorization
 
 
 router = APIRouter()
 
 @router.get("", response_model=List[schemas.Produit], tags=["produit"])
-async def get_produits(database: Session = Depends(get_db)):
+async def get_produits(database: Session = Depends(get_db),
+                    _ = Depends(verify_authorization)):
     """
         Retourne toutes les produits
     """
@@ -20,7 +22,8 @@ async def get_produits(database: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Connection failed: {e}") from e
 
 @router.get("/{id_produit}", response_model=schemas.Produit, tags=["produit"])
-async def get_produit(id_produit: int, database: Session = Depends(get_db)):
+async def get_produit(id_produit: int, database: Session = Depends(get_db),
+                    _ = Depends(verify_authorization)):
     """
         Retourne le produit trouvé par son id
     """
@@ -37,7 +40,8 @@ async def get_produit(id_produit: int, database: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Connection failed: {e}") from e
 
 @router.post("", response_model=schemas.Produit, status_code=201, tags=["produit"])
-async def post_produit(produit: schemas.ProduitCreate, database: Session = Depends(get_db)):
+async def post_produit(produit: schemas.ProduitCreate, database: Session = Depends(get_db),
+                    _ = Depends(verify_authorization)):
     """
         Créer un nouveau produit
     """
@@ -55,7 +59,8 @@ async def post_produit(produit: schemas.ProduitCreate, database: Session = Depen
         raise HTTPException(status_code=500, detail=f"Connection failed: {e}") from e
 
 @router.delete("/{id_produit}", tags=["produit"])
-async def delete_produit(id_produit: int, database: Session = Depends(get_db)):
+async def delete_produit(id_produit: int, database: Session = Depends(get_db),
+                    _ = Depends(verify_authorization)):
     """
         Supprime un produit
     """
@@ -74,7 +79,8 @@ async def delete_produit(id_produit: int, database: Session = Depends(get_db)):
 
 @router.patch("/{id_produit}", response_model=schemas.Produit, tags=["produit"])
 async def patch_produit(id_produit: int,
-    produit: schemas.ProduitUpdate, database: Session = Depends(get_db)):
+    produit: schemas.ProduitUpdate, database: Session = Depends(get_db),
+                    _ = Depends(verify_authorization)):
     """
         Met à jour les données du produit
     """
